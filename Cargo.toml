@@ -1,6 +1,6 @@
 [package]
 name = "d365-odata-mcp"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 description = "MCP Server for Microsoft Dynamics 365 OData API (Dataverse & Finance/Operations)"
 license = "MIT"

@@ -143,12 +143,14 @@ impl ODataClient {
     /// * `product` - Product type (Dataverse or F&O)
     /// * `max_retries` - Maximum retry attempts for failed requests
     /// * `retry_delay_ms` - Initial delay between retries in milliseconds
+    /// * `insecure_ssl` - Skip SSL certificate verification
     pub fn new(
         auth: Arc<AzureAdAuth>,
         endpoint: String,
         product: ProductType,
         max_retries: u32,
         retry_delay_ms: u64,
+        insecure_ssl: bool,
     ) -> Self {
         // Ensure endpoint ends with /
         let endpoint = if endpoint.ends_with('/') {
@@ -157,14 +159,24 @@ impl ODataClient {
             format!("{}/", endpoint)
         };
 
+        let http_client = if insecure_ssl {
+            Client::builder()
+                .timeout(Duration::from_secs(30))
+                .danger_accept_invalid_certs(true)
+                .build()
+                .unwrap()
+        } else {
+            Client::builder()
+                .timeout(Duration::from_secs(30))
+                .build()
+                .unwrap()
+        };
+
         Self {
             auth,
             endpoint,
             product,
-            http_client: Client::builder()
-                .timeout(Duration::from_secs(30))
-                .build()
-                .unwrap(),
+            http_client,
             max_retries,
             retry_delay_ms,
         }

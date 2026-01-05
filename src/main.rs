@@ -129,6 +129,7 @@ fn create_server() -> Result<D365McpServer, Box<dyn std::error::Error>> {
         runtime_config.product.clone(),
         runtime_config.max_retries,
         runtime_config.retry_delay_ms,
+        runtime_config.insecure_ssl,
     ));
 
     Ok(D365McpServer::new(client, Arc::new(runtime_config)))
