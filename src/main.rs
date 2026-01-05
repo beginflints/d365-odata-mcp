@@ -3,7 +3,6 @@
 //! Entry point for the MCP server binary.
 //! Implements MCP protocol over stdio using JSON-RPC 2.0.
 
-use d365_odata_mcp::auth::AzureAdAuth;
 use d365_odata_mcp::config::Config;
 use d365_odata_mcp::mcp::{
     CallToolParams, CallToolResult, D365McpServer, InitializeResult, JsonRpcRequest,
@@ -101,14 +100,27 @@ async fn async_main() {
 }
 
 fn create_server() -> Result<D365McpServer, Box<dyn std::error::Error>> {
+    use d365_odata_mcp::auth::{AuthConfig, AuthType, OAuth2Auth};
+    
     let config = Config::load_default()?;
     let runtime_config = config.to_runtime()?;
 
-    let auth = Arc::new(AzureAdAuth::new(
-        runtime_config.tenant_id.clone(),
-        runtime_config.client_id.clone(),
-        runtime_config.client_secret.clone(),
-    ));
+    // Parse auth type
+    let auth_type: AuthType = runtime_config.auth_type.parse()
+        .unwrap_or(AuthType::AzureAd);
+
+    log_to_file(&format!("Auth type: {:?}", auth_type));
+
+    let auth_config = AuthConfig {
+        auth_type,
+        tenant_id: runtime_config.tenant_id.clone(),
+        client_id: runtime_config.client_id.clone(),
+        client_secret: runtime_config.client_secret.clone(),
+        token_url: runtime_config.token_url.clone(),
+        resource: runtime_config.resource.clone(),
+    };
+
+    let auth = Arc::new(OAuth2Auth::new(auth_config));
 
     let client = Arc::new(ODataClient::new(
         auth,

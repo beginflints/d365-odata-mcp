@@ -9,7 +9,8 @@ An MCP (Model Context Protocol) server that enables AI assistants to query **Mic
 
 - ✅ Full OData query support: `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$expand`, `$count`
 - ✅ Cross-company queries (F&O)
-- ✅ Azure AD authentication (Client Credentials flow)
+- ✅ **Azure AD** authentication (Cloud D365)
+- ✅ **ADFS** authentication (On-premise D365)
 - ✅ Automatic token refresh
 - ✅ Retry with exponential backoff
 - ✅ Works with OpenAI Codex, Claude Desktop, and other MCP clients
@@ -183,11 +184,37 @@ Get D365 environment information:
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `TENANT_ID` | Azure AD Tenant ID | ✅ |
-| `CLIENT_ID` | Azure AD Application ID | ✅ |
-| `CLIENT_SECRET` | Azure AD Client Secret | ✅ |
+| `TENANT_ID` | Azure AD Tenant ID (or `adfs` for ADFS) | ✅ |
+| `CLIENT_ID` | Azure AD/ADFS Application ID | ✅ |
+| `CLIENT_SECRET` | Azure AD/ADFS Client Secret | ✅ |
 | `ENDPOINT` | D365 OData endpoint URL | ✅ |
 | `PRODUCT` | `dataverse` or `finops` | ✅ |
+| `AUTH_TYPE` | `azure` (default) or `adfs` | ❌ |
+| `TOKEN_URL` | Custom token URL (ADFS only) | ❌ |
+| `RESOURCE` | Resource/audience (ADFS only) | ❌ |
+
+---
+
+## Configuration for On-Premise D365 (ADFS)
+
+For D365 F&O on-premise with ADFS authentication:
+
+```toml
+# ~/.codex/config.toml
+
+[mcp_servers.d365_onprem]
+command = "d365-odata-mcp"
+
+[mcp_servers.d365_onprem.env]
+AUTH_TYPE = "adfs"
+TENANT_ID = "adfs"
+CLIENT_ID = "your-adfs-client-id"
+CLIENT_SECRET = "your-adfs-secret"
+TOKEN_URL = "https://your-adfs-server.com/adfs/oauth2/token"
+RESOURCE = "https://your-d365-onprem.com"
+ENDPOINT = "https://your-d365-onprem.com/namespaces/AXSF/data/"
+PRODUCT = "finops"
+```
 
 ---
 

@@ -87,6 +87,12 @@ pub struct RuntimeConfig {
     pub tenant_id: String,
     pub client_id: String,
     pub client_secret: String,
+    /// Authentication type: "azure" or "adfs"
+    pub auth_type: String,
+    /// Custom token URL (for ADFS)
+    pub token_url: Option<String>,
+    /// Resource/audience (for ADFS)
+    pub resource: Option<String>,
     pub page_size: usize,
     pub concurrency: usize,
     pub max_retries: u32,
@@ -157,12 +163,24 @@ impl Config {
         let obs = self.observability.clone().unwrap_or_default();
         let delta = self.delta.clone().unwrap_or_default();
 
+        // Auth type (azure or adfs)
+        let auth_type = env::var("AUTH_TYPE").unwrap_or_else(|_| "azure".to_string());
+        
+        // Custom token URL (for ADFS)
+        let token_url = env::var("TOKEN_URL").ok();
+        
+        // Resource/audience (for ADFS) 
+        let resource = env::var("RESOURCE").ok();
+
         Ok(RuntimeConfig {
             product,
             endpoint,
             tenant_id,
             client_id,
             client_secret,
+            auth_type,
+            token_url,
+            resource,
             page_size: self.global.page_size.unwrap_or(500),
             concurrency: self.global.concurrency.unwrap_or(4),
             max_retries: self.global.max_retries.unwrap_or(3),
